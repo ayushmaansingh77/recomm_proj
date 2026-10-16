@@ -1,0 +1,14 @@
+{
+  "category": "Video_Games",
+  "synthetic": false,
+  "embedder": "tfidf",
+  "n_users": 12307,
+  "n_items": 10305,
+  "n_interactions": 116538,
+  "sparsity": 0.9990811018782106,
+  "k": 10,
+  "n_eval_users": 682,
+  "split_date": "2019-12-29",
+  "cold_item_share_of_targets": 0.5385450597176982,
+  "n_cold_items": 1949
+}

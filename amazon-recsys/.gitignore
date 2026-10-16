@@ -1,0 +1,26 @@
+# raw downloaded data — large, re-downloadable, not needed in git
+data/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# local study notes — not part of the deployable product
+interview.md
+
+# environment / secrets
+.env
+*.env
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
+
+# artifacts are committed intentionally for Streamlit Cloud deploy
+# if recsys.joblib exceeds 100 MB, uncomment the line below and lower --max-reviews
+# artifacts/

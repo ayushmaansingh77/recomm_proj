@@ -2,6 +2,7 @@
 
 Hybrid recommender (collaborative filtering + content) that handles **new users** and **new items**,
 with a Streamlit frontend and a leakage-aware cold-start benchmark.
+🔗 Live demo: https://ayushmaansingh77-recomm-proj-app-hn5ayi.streamlit.app/
 
 ## Quick start
 ```bash

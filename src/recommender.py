@@ -67,13 +67,54 @@ class RecSys:
         return self.items[m].sort_values("n_pos", ascending=False).head(limit)
 
     def onboarding_items(self, n: int = 16) -> list[int]:
-        """Popular items spread over the biggest categories: the new-user questionnaire."""
+        """Diverse onboarding picks spread across categories and popularity tiers.
+
+        Strategy:
+        - Cover as many categories as possible (up to n categories).
+        - Within each category, sample across popularity tiers (top, mid, rising)
+          rather than always picking rank-1, so suggestions feel varied.
+        - Shuffle within tiers to add freshness across sessions.
+        - Deduplicate and trim to n.
+        """
         if self._onboarding is None:
-            cats = self.items.groupby("category")["n_pos"].sum().nlargest(max(4, n // 3)).index
-            per = max(1, n // len(cats))
+            # Use up to n categories so every slot can be a different genre
+            n_cats = min(n, self.items["category"].nunique())
+            cats = self.items.groupby("category")["n_pos"].sum().nlargest(n_cats).index
+            per_cat = max(1, n // len(cats))
+
+            rng = np.random.default_rng(42)  # fixed seed → stable across reruns
             picks: list[int] = []
+            seen: set[int] = set()
+
             for c in cats:
-                picks += self.items[self.items["category"] == c].nlargest(per, "n_pos").index.tolist()
+                pool = self.items[self.items["category"] == c].copy()
+                if pool.empty:
+                    continue
+
+                # Divide pool into top / mid / rising thirds
+                tercile = max(1, len(pool) // 3)
+                top_pool    = pool.nlargest(tercile, "n_pos")
+                mid_pool    = pool.iloc[tercile: 2 * tercile]
+                rising_pool = pool.iloc[2 * tercile:]
+
+                # Sample roughly 50 % top, 35 % mid, 15 % rising
+                budget = per_cat
+                n_top     = max(1, round(budget * 0.50))
+                n_mid     = max(0, round(budget * 0.35))
+                n_rising  = max(0, budget - n_top - n_mid)
+
+                def _sample(df, k):
+                    k = min(k, len(df))
+                    if k <= 0:
+                        return []
+                    idx = rng.choice(df.index.tolist(), size=k, replace=False)
+                    return idx.tolist()
+
+                for idx in _sample(top_pool, n_top) + _sample(mid_pool, n_mid) + _sample(rising_pool, n_rising):
+                    if idx not in seen:
+                        picks.append(idx)
+                        seen.add(idx)
+
             self._onboarding = picks[:n]
         return self._onboarding
 

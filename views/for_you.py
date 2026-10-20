@@ -27,13 +27,21 @@ def render_for_you_tab(rs, results_df: pd.DataFrame, meta: dict) -> None:
         st.caption("You begin as a cold user with zero history. Each item you like dynamically shifts model weights from content to collaborative filtering.")
 
         # Onboarding Quick Picks
-        onboarding_ids = rs.onboarding_items(16)
+        onboarding_ids = rs.onboarding_items(24)  # larger pool → richer choice list
+
+        # Use key= to let Streamlit own the widget state; sync back after change.
+        # Avoid using `default=` with a mutable session value — it causes stale
+        # re-render bugs when the widget key stays the same across reruns.
+        if "quick_picks_widget" not in st.session_state:
+            st.session_state["quick_picks_widget"] = st.session_state.quick_picks
+
         selected_quick = st.multiselect(
-            "Quick picks (popular products across major genres)",
+            "Quick picks — choose titles you already know you like",
             options=onboarding_ids,
-            default=st.session_state.quick_picks,
+            default=st.session_state["quick_picks_widget"],
             format_func=lambda idx: format_item_title(rs, idx, 65),
-            help="Select known titles to simulate initial user likes"
+            help="Covers popular + mid-tier titles across major categories. Selecting even 1–2 items shifts the engine from pure popularity into content-aware mode.",
+            key="quick_picks_widget",
         )
         st.session_state.quick_picks = selected_quick
 
